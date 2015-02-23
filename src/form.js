@@ -1,5 +1,5 @@
 
-var Form = {
+var FormUtil = {
   cleanedData: function (refs) {
     var data = {};
     for (ref in refs) {
@@ -8,6 +8,31 @@ var Form = {
     return data;
   }
 };
+
+
+// MARK: Form
+
+var Form = React.createClass({
+  render: function() {
+    return (
+      <div className='bp-form'>
+        {this.props.children}
+      </div>
+    );
+  }
+});
+
+
+// MARK: Field
+
+var Field = React.createClass({
+  render: function() {
+    if (this.props.multiline) {
+      return <textarea ref={this.props.ref} placeholder={this.props.placeholder} value={this.props.children} />;
+    }
+    return <input type='text' ref={this.props.ref} placeholder={this.props.placeholder} value={this.props.children} />;
+  }
+});
 
 
 // MARK: Button
