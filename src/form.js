@@ -48,9 +48,82 @@ var Button = React.createClass({
 });
 
 
-// MARK: Token Field
+// MARK: Typeahead
 
-var TokenField = React.createClass({
+var TypeaheadResult = React.createClass({
+  handleClick: function() {
+    this.props.onClick(this.props);
+  },
+  render: function() {
+    return (
+      <div onClick={this.handleClick}>
+        {this.props.children}
+      </div>
+    );
+  }
+});
+
+var Typeahead = React.createClass({
+  defaults: {
+    url: '/search',
+    multiselect: false,
+    label: function(item) {
+      return item.title
+    },
+    identifier: function(item) {
+      return item.key
+    },
+    objects: function(data) {
+      return data
+    }
+  },
+  getInitialState: function() {
+    return {data: [], options: this.defaults};
+  },
+  componentDidMount: function() {
+    this.state.options = _.defaults(this.props.options, this.defaults);
+    this.setState(this.state);
+  },
+  handleChange: function() {
+    var data = FormUtil.cleanedData(this.refs);
+
+    if (data.query === '') {
+      this.state.data = [];
+      this.setState(this.state);
+      return;
+    }
+
+    $.get(this.state.options.url, {'q': data.query}).done(function(data) {
+      this.state.data = this.state.options.objects(data);
+      this.setState(this.state);
+    }.bind(this));
+  },
+  handleSelect: function(props) {
+    this.props.onSelect(props.identifier);
+
+    this.refs.query.getDOMNode().value = props.children;
+
+    this.state.data = [];
+    this.setState(this.state);
+  },
+  render: function() {
+    var results = this.state.data.map(function(obj) {
+      return <TypeaheadResult identifier={this.state.options.identifier(obj)} onClick={this.handleSelect}>{this.state.options.label(obj)}</TypeaheadResult>
+    }.bind(this));
+
+    return (
+      <div className='bp-typeahead'>
+        <input type='type' ref='query' onChange={this.handleChange} />
+        <div className='bp-typeahead-results'>{results}</div>
+      </div>
+    );
+  }
+});
+
+
+// MARK: Mention Field
+
+var MentionField = React.createClass({
   clearSelectAll: function() {
     if (this.state.selectAll) {
       this.state.selectAll = false;
@@ -106,7 +179,6 @@ var TokenField = React.createClass({
     });
 
     var results = this.state.value.match(/(@\w+?)+/);
-    console.log(results)
     if (results) {
 
     } else {
