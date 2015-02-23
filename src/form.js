@@ -3,7 +3,11 @@ var FormUtil = {
   cleanedData: function (refs) {
     var data = {};
     for (ref in refs) {
-      data[ref] = refs[ref].getDOMNode().value.trim();
+      if (typeof refs[ref].value === 'function') {
+        data[ref] = refs[ref].value();
+      } else {
+        data[ref] = refs[ref].getDOMNode().value.trim();
+      }
     }
     return data;
   }
@@ -52,11 +56,11 @@ var Button = React.createClass({
 
 var TypeaheadResult = React.createClass({
   handleClick: function() {
-    this.props.onClick(this.props);
+    this.props.onClick(this.props.identifier, this.props.children);
   },
   render: function() {
     return (
-      <div onClick={this.handleClick}>
+      <div className='bp-typeahead-result' onClick={this.handleClick}>
         {this.props.children}
       </div>
     );
@@ -73,47 +77,78 @@ var Typeahead = React.createClass({
     identifier: function(item) {
       return item.key
     },
-    objects: function(data) {
+    data: function(data) {
       return data
     }
   },
+  value: function() {
+    return this.state.identifier;
+  },
   getInitialState: function() {
-    return {data: [], options: this.defaults};
+    return {
+      data: [],
+      options: this.defaults,
+      query: '',
+      identifier: ''
+    };
   },
   componentDidMount: function() {
     this.state.options = _.defaults(this.props.options, this.defaults);
     this.setState(this.state);
   },
-  handleChange: function() {
-    var data = FormUtil.cleanedData(this.refs);
+  handleChange: function(e) {
+    this.state.query = e.target.value;
 
-    if (data.query === '') {
+    if (this.state.query === '') {
       this.state.data = [];
       this.setState(this.state);
       return;
     }
 
-    $.get(this.state.options.url, {'q': data.query}).done(function(data) {
-      this.state.data = this.state.options.objects(data);
-      this.setState(this.state);
-    }.bind(this));
+    $.get(this.state.options.url, {'q': this.state.query})
+      .done(function(data) {
+        this.state.data = this.state.options.data(data);
+        this.setState(this.state);
+      }.bind(this));
   },
-  handleSelect: function(props) {
-    this.props.onSelect(props.identifier);
-
-    this.refs.query.getDOMNode().value = props.children;
-
+  handleClick: function(identifier, label) {
+    this.state.query = label;
+    this.state.identifier = identifier;
     this.state.data = [];
     this.setState(this.state);
   },
+  handleClear: function() {
+    this.state.identifier = '';
+    this.state.query = '';
+    this.setState(this.state);
+  },
+  handleKeyDown: function(e) {
+    if (e.keyCode === 13) {
+      var result = this.state.data[0];
+      if (result !== undefined) {
+        var identifier = this.state.options.identifier(result);
+        var label = this.state.options.label(result);
+        this.handleClick(identifier, label);
+      }
+    }
+  },
   render: function() {
+    var cx = React.addons.classSet;
+    var classes = cx({
+      'bp-typeahead': true,
+      'bp-typeahead-selected': this.state.identifier !== ''
+    });
+
     var results = this.state.data.map(function(obj) {
-      return <TypeaheadResult identifier={this.state.options.identifier(obj)} onClick={this.handleSelect}>{this.state.options.label(obj)}</TypeaheadResult>
+      var identifier = this.state.options.identifier(obj);
+      var label = this.state.options.label(obj);
+      return <TypeaheadResult identifier={identifier} onClick={this.handleClick}>{label}</TypeaheadResult>
     }.bind(this));
 
     return (
-      <div className='bp-typeahead'>
-        <input type='type' ref='query' onChange={this.handleChange} />
+      <div className={classes}>
+        <div className='bp-typeahead-clear' onClick={this.handleClear} />
+        <input type='type' ref='query' onChange={this.handleChange} onKeyDown={this.handleKeyDown} placeholder={this.props.placeholder} value={this.state.query} />
         <div className='bp-typeahead-results'>{results}</div>
       </div>
     );
