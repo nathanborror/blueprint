@@ -1,5 +1,5 @@
 /*
- * Blueprint v0.2 (github.com/nathanborror/blueprint)
+ * Blueprint v0.3 (github.com/nathanborror/blueprint)
  * Copyright 2015 Nathan Borror
  * Distributed under the New BSD license.
  */
@@ -30,7 +30,7 @@
 .bp-modal-mask { display: none; position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(240,240,240,.75); z-index: 999; }
 .bp-modal-mask-active { display: block; }
 .bp-modal { position: fixed; top: 64px; left: 50%; width: 60%; min-height: 320px; margin-left: -30%; padding: 32px; background: rgba(255,255,255,1); }
-
+.bp-modal .bp-button { display: inline-block; padding: 4px 16px; border: 1px solid rgba(90,172,106,1); color: rgba(90,172,106,1); border-radius: 4px; }
 
 /* Collection */
 .bp-collection { margin-bottom: 48px; }
@@ -39,11 +39,16 @@
 
 
 /* Form */
-.bp-button { color: rgba(90,172,106,1); }
+.bp-button { color: rgba(90,172,106,1); cursor: default; }
 
 
 /* Typeahead */
-.bp-typeahead { position: relative; }
-.bp-typeahead-clear { display: none; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: #ddd; }
+.bp-typeahead { position: relative; cursor: default; -webkit-user-select: none; }
+.bp-typeahead-clear { display: none; position: absolute; top: 20px; right: 0; width: 16px; height: 16px; background: rgba(90,172,106,.3); border-radius: 8px; }
 .bp-typeahead-selected input { border-color: rgba(90,172,106,1); color: rgba(90,172,106,1); }
 .bp-typeahead-selected .bp-typeahead-clear { display: block; }
+
+.bp-typeahead-results { position: absolute; top: 50px; left: 0; right: 0; box-shadow: 0 8px 20px 0 rgba(0,0,0,.2); background: #fff; }
+.bp-typeahead-result { padding: 8px; }
+.bp-typeahead-result:first-child,
+.bp-typeahead-result:hover { background: rgba(90,172,106,.1); }
