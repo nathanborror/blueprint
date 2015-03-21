@@ -1,72 +1,78 @@
 
 var UIContextMenuNotification = 1000
+var UIContextMenuDismissNotification = 1001
 
-var ContextItem = React.createClass({
-  render: function() {
+class ContextItem extends React.Component {
+  render() {
     return (
       <div className="bp-context-item" onClick={this.props.onClick}>
         {this.props.children}
       </div>
-    );
+    )
   }
-});
+}
 
-var ContextMenu = React.createClass({
-  defaults: {
-    origin: {left: -1000, top: -1000},
-    wide: false,
-    autoselect: false
-  },
-  getInitialState: function() {
-    return {items: [], options: this.defaults};
-  },
-  componentDidMount: function() {
-    this.setState({items: [], options: this.defaults});
-    this.props.notifications.addObserver(UIContextMenuNotification, this.handleDisplay);
-  },
-  handleDisplay: function(dispatch) {
-    var options = _.defaults(dispatch.options, this.defaults);
-
-    if (dispatch.origin === null) {
-      this.setState({items: [], options: options});
-      return;
+class ContextMenu extends React.Component {
+  constructor(props) {
+    super(props)
+    this.defaults = {
+      origin: {left: -1000, top: -1000},
+      wide: false,
+      autoselect: false,
     }
+    this.state = {items: [], options: this.defaults}
+  }
 
-    var menuWidth = this.getDOMNode().clientWidth;
-    var menuHeight = this.getDOMNode().clientHeight;
+  componentDidMount() {
+    this.setState({items: [], options: this.defaults})
+    this.props.notifications.addObserver(UIContextMenuNotification, this.handleNotification.bind(this))
+    this.props.notifications.addObserver(UIContextMenuDismissNotification, this.handleDismiss.bind(this))
+  }
 
-    var left = options.origin.left - window.scrollX;
-    var top = options.origin.top - window.scrollY;
+  handleNotification(notification) {
+    var options = _.defaults(notification.options, this.defaults)
+
+    var menuWidth = React.findDOMNode(this).clientWidth
+    var menuHeight = React.findDOMNode(this).clientHeight
+
+    var left = options.origin.left - window.scrollX
+    var top = options.origin.top - window.scrollY
 
     if ((top + menuHeight) > window.innerHeight) {
-      top = top - menuHeight;
+      top = top - menuHeight
     }
     if ((left + menuWidth) > window.innerWidth) {
-      left = left - menuWidth;
+      left = left - menuWidth
     }
 
-    options.origin = {left: left, top: top};
+    options.origin = {left: left, top: top}
 
-    this.setState({
-      items: dispatch.items,
-      options: options
-    });
-  },
-  render: function() {
-    var cx = React.addons.classSet;
+    this.state.items = notification.items
+    this.state.options = options
+    this.setState(state)
+  }
+
+  handleDismiss() {
+    this.state.items = []
+    this.state.options = this.defaults
+    this.setState(this.state)
+  }
+
+  render() {
+    var cx = React.addons.classSet
     var classes = cx({
       'bp-context-menu': true,
       'bp-context-menu-wide': this.state.options.wide
-    });
+    })
 
-    var items = this.state.items.map(function(item) {
+    var items = this.state.items.map(item => {
       return <ContextItem onClick={item.onClick}>{item.title}</ContextItem>
-    });
+    })
 
     return (
       <div className={classes} style={this.state.options.origin}>
         {items}
       </div>
-    );
+    )
   }
-});
+}

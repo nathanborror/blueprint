@@ -1,30 +1,38 @@
 
-var Cell = React.createClass({
-  render: function() {
+class Cell extends React.Component {
+  render() {
+    var cx = React.addons.classSet
+    var classes = cx({
+      'bp-cell': true,
+      'bp-cell-selected': this.props.selected,
+      'bp-cell-highlighted': this.props.highlighted,
+      'bp-cell-disabled': this.props.disabled,
+    })
+
     return (
-      <div className='bp-cell' onClick={this.props.onClick}>
+      <div className={classes} onClick={this.props.onClick}>
         {this.props.children}
       </div>
-    );
+    )
   }
-});
+}
 
-var Section = React.createClass({
-  render: function() {
+class Section extends React.Component {
+  render() {
     return (
       <div className='bp-section'>
         {this.props.title}
       </div>
-    );
+    )
   }
-});
+}
 
-var Collection = React.createClass({
-  render: function() {
+class Collection extends React.Component {
+  render() {
     return (
       <div className='bp-collection'>
         {this.props.children}
       </div>
-    );
+    )
   }
-});
+}
